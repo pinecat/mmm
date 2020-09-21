@@ -2,4 +2,4 @@
 
 Multi-instance Minecraft Manager
 
-More info coming soon. ;)
+More info coming soon. 😉
