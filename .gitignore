@@ -1,0 +1,13 @@
+# System files
+**/.DS_Store
+
+# Executables
+**/mmm
+**/*.jar
+
+# Folders
+**/mc
+**/build
+
+# Files
+*.txt
