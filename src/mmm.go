@@ -62,19 +62,22 @@ func genEula(pwd string) error {
 	dt := time.Now().String() + "\n"
 	eula := "eula=true\n"
 
-	fmt.Printf("Accept the EULA? [Y/n] ")
-	ch := C.getchar()
-	if ch == 'n' || ch == 'N' {
-		eula = "eula=false\n"
-	}
+	_, err := os.Stat(pwd + "/eula.txt")
+	if os.IsNotExist(err) {
+		fmt.Printf("Accept the EULA? [Y/n] ")
+		ch := C.getchar()
+		if ch == 'n' || ch == 'N' {
+			eula = "eula=false\n"
+		}
 
-	out, err := os.Create(pwd + "/eula.txt"); if err != nil { return err }
-	defer out.Close()
-	_, err = out.WriteString(comment + dt + eula)
+		out, err := os.Create(pwd + "/eula.txt"); if err != nil { return err }
+		defer out.Close()
+		_, err = out.WriteString(comment + dt + eula)
 
-	if ch == 'n' || ch == 'N' {
-		fmt.Printf("mmm: EULA not accepted.  Cannot start server.  Writing EULA and exiting....\n")
-		os.Exit(0)
+		if ch == 'n' || ch == 'N' {
+			fmt.Printf("mmm: EULA not accepted.  Cannot start server.  Writing EULA and exiting....\n")
+			os.Exit(0)
+		}
 	}
 
 	return nil
