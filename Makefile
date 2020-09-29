@@ -6,7 +6,7 @@ all: mmm
 
 mmm:
 	mkdir -p $(BUILDDIR)
-	go build -o build/mmm src/mmm.go
+	go build -o build/mmm ./mmm.go
 
 install:
 	cp $(BUILDDIR)/mmm $(INSTALLDIR)/mmm

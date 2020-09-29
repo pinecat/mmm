@@ -70,7 +70,10 @@ func genEula(pwd string) error {
 			eula = "eula=false\n"
 		}
 
-		out, err := os.Create(pwd + "/eula.txt"); if err != nil { return err }
+		out, err := os.Create(pwd + "/eula.txt")
+		if err != nil {
+			return err
+		}
 		defer out.Close()
 		_, err = out.WriteString(comment + dt + eula)
 
@@ -89,42 +92,29 @@ func cmdExists(cmd string) (string, bool) {
 }
 
 func runInstance(pwd string) {
-	// Check if java exists
-	path, exists := cmdExists("java")
-	if exists {
-		// If java exists, fork and run the instance
-		pid := C.fork()
 
-		// Check for PID == -1 (error forking)
-		if (pid == -1) {
-			fmt.Printf("mmm: Unable to fork a new process.\n")
-		}
-
-		// If we are in the child process...
-		if (pid != 0) {
-			// Do stuff...
-			cmd := &exec.Cmd {
-				Path: path,
-				Args: []string{path, "-jar", pwd + "/mcserver_1.16.3.jar"},
-				Stdout: os.Stdout,
-				Stderr: os.Stderr,
-			}
-			cmd.Run()
-		}
-	} else {
-		fmt.Printf("mmm: Could not find Java on your system.  Please ensure that Java 1.8 is installed and is in your PATH.\n")
-		os.Exit(1)
-	}
 }
 
 func main() {
 	// Get present working directory
-	pwd, err := os.Getwd(); if err != nil { fmt.Printf("mmm: Permission denied.\n"); os.Exit(1) }
+	pwd, err := os.Getwd()
+	if err != nil {
+		fmt.Printf("mmm: Permission denied.\n")
+		os.Exit(1)
+	}
 
 	// Download the file
-	err = download(pwd); if err != nil { fmt.Printf("mmm: Unable to download or write server jar file.\n"); os.Exit(1) }
+	err = download(pwd)
+	if err != nil {
+		fmt.Printf("mmm: Unable to download or write server jar file.\n")
+		os.Exit(1)
+	}
 
-	err = genEula(pwd); if err != nil { fmt.Printf("mmm: Could not write eula.txt.\n"); os.Exit(1) }
+	err = genEula(pwd)
+	if err != nil {
+		fmt.Printf("mmm: Could not write eula.txt.\n")
+		os.Exit(1)
+	}
 
 	runInstance(pwd)
 }
