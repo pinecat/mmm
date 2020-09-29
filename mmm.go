@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -22,8 +23,9 @@ type ConfigDatabase struct {
 }
 
 var mmmpid string = "/mmm.pid"
+var mmmlog string = "/mmm.log"
 
-func setEnv() {
+func setEnv(ff string, rf bool, df bool, sf bool) (*os.File, ConfigDatabase) {
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
 
 	var cfg ConfigDatabase
@@ -33,6 +35,9 @@ func setEnv() {
 		log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
 	}
 
+	var writers []io.Writer
+	var logfile *os.File
+
 	// Set log level
 	switch cfg.Debug {
 	case 0: // Silent
@@ -40,15 +45,54 @@ func setEnv() {
 		break
 	case 1: // Info
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
 		break
 	case 2: // Full errors
 		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
+		break
+	case 3: // Info & out to a log file
+		if rf || df || sf {
+			logfile = saveLog(ff)
+			writers = append(writers, zerolog.ConsoleWriter{Out: logfile, TimeFormat: time.RFC1123Z})
+		}
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
+		break
+	case 4: // Full errors & Out to a log file
+		if rf || df || sf {
+			logfile = saveLog(ff)
+			writers = append(writers, zerolog.ConsoleWriter{Out: logfile, TimeFormat: time.RFC1123Z})
+		}
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
 		break
 	default: // Default to Info
 		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		writers = append(writers, zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
 		break
 	}
-	log.Info().Msg("[MMM] Log Level: " + strconv.Itoa(cfg.Debug) + ".")
+
+	mw := io.MultiWriter(writers...)
+	log.Logger = zerolog.New(mw).With().Timestamp().Logger()
+
+	return logfile, cfg
+}
+
+func saveLog(ff string) *os.File {
+	// Try to create the file
+	file, err := os.Create(ff + mmmlog)
+	if err != nil {
+		log.Info().Msg("[MMM] Unable to create logfile for daemon.  Quitting....")
+		log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
+		os.Exit(1)
+	}
+
+	// Flush write to disk
+	file.Sync()
+
+	// Get the writer
+	return file
 }
 
 func savePid(ff string, pid int) {
@@ -124,9 +168,6 @@ func readPid(ff string) {
 }
 
 func main() {
-	// Set some program settings (debug level, etc)
-	setEnv()
-
 	// Setup cmdline flags and parse
 	rf := flag.Bool("r", false, "Run mmm")
 	df := flag.Bool("d", false, "Daemonize")
@@ -141,9 +182,13 @@ func main() {
 		*ff = (*ff)[0 : len(*ff)-2]
 	}
 
+	// Set some program settings (debug level, etc)
+	logfile, cfg := setEnv(*ff, *rf, *df, *sf)
+
 	// Perform an action based on the flag
 	if *rf {
 		// Run the daemon program normally (i.e. in the foreground)
+		log.Info().Msg("[MMM] Log Level: " + strconv.Itoa(cfg.Debug) + ".")
 		log.Info().Msg("[MMM] Using config & server dir: " + *ff + ".")
 
 		// Setup signals
@@ -162,6 +207,7 @@ func main() {
 				log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
 			}
 
+			logfile.Close()
 			os.Exit(0)
 		}()
 
@@ -180,10 +226,12 @@ func main() {
 		cmd.Start()
 		log.Info().Msg("[MMM] Started the mmm daemon [" + strconv.Itoa(cmd.Process.Pid) + "].")
 		savePid(*ff, cmd.Process.Pid)
+		logfile.Close()
 		os.Exit(0)
 	} else if *sf {
 		// Stop the daemon
 		readPid(*ff)
+		logfile.Close()
 		os.Exit(0)
 	} else {
 		// Issue commands to the daemon, after checking to see
