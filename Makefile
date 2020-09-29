@@ -12,7 +12,7 @@ mmm:
 install:
 	cp $(BUILDDIR)/mmm $(INSTALLDIR)/mmm
 	mkdir -p $(CONFIGDIR)
-	chmod 666 $(CONFIGDIR)
+	chmod 777 $(CONFIGDIR)
 
 uninstall:
 	rm -f $(INSTALLDIR)/mmm
