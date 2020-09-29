@@ -1,120 +1,47 @@
 package main
 
-// #include "mmm.h"
-import "C"
-
 import (
-	"fmt"
-	"io"
-	"net/http"
 	"os"
-	"os/exec"
+	"strconv"
 	"time"
+
+	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
-/*
-	help
-		Prints a help menu.
-	params:
-		none
-	returns:
-		void
-*/
-func help() {
-	// TODO: Print a help menu
+type ConfigDatabase struct {
+	Debug int `env:"MMMDEBUG" env-default:"1"`
 }
 
-/*
-	download
-		Downloads the latest minecraft server version from Mojang.
-	params:
-		string - pwd - The present working directory
-	returns
-		err - error - If there was an error
-		err - nil - If there was NOT an error
-*/
-func download(pwd string) error {
-	// Location to download the server jar from
-	//	The latest Minecraft version at this time is 1.16.3
-	fileUrl := "https://launcher.mojang.com/v1/objects/f02f4473dbf152c23d7d484952121db0b36698cb/server.jar"
+func setEnv() {
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
 
-	// Get the file data from the above URL
-	resp, err := http.Get(fileUrl)
+	var cfg ConfigDatabase
+	err := cleanenv.ReadEnv(&cfg)
 	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Create file to write data to
-	out, err := os.Create(pwd + "/mcserver_1.16.3.jar")
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-
-	// Write data to file
-	_, err = io.Copy(out, resp.Body)
-	return err
-}
-
-func genEula(pwd string) error {
-	comment := "#By changing the setting below to TRUE you are indicating your agreement to our EULA (https://account.mojang.com/documents/minecraft_eula).\n"
-	dt := time.Now().String() + "\n"
-	eula := "eula=true\n"
-
-	_, err := os.Stat(pwd + "/eula.txt")
-	if os.IsNotExist(err) {
-		fmt.Printf("Accept the EULA? [Y/n] ")
-		ch := C.getchar()
-		if ch == 'n' || ch == 'N' {
-			eula = "eula=false\n"
-		}
-
-		out, err := os.Create(pwd + "/eula.txt")
-		if err != nil {
-			return err
-		}
-		defer out.Close()
-		_, err = out.WriteString(comment + dt + eula)
-
-		if ch == 'n' || ch == 'N' {
-			fmt.Printf("mmm: EULA not accepted.  Cannot start server.  Writing EULA and exiting....\n")
-			os.Exit(0)
-		}
+		log.Info().Msg("[MMM] Unable to read environment variables, continuing with default.")
+		log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
 	}
 
-	return nil
-}
-
-func cmdExists(cmd string) (string, bool) {
-	path, err := exec.LookPath(cmd)
-	return path, err == nil
-}
-
-func runInstance(pwd string) {
-
+	// Set log level
+	switch cfg.Debug {
+	case 0: // Silent
+		zerolog.SetGlobalLevel(zerolog.WarnLevel)
+		break
+	case 1: // Info
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		break
+	case 2: // Full errors
+		zerolog.SetGlobalLevel(zerolog.TraceLevel)
+		break
+	default: // Default to Info
+		zerolog.SetGlobalLevel(zerolog.InfoLevel)
+		break
+	}
+	log.Info().Msg("[MMM] Log Level: " + strconv.Itoa(cfg.Debug) + ".")
 }
 
 func main() {
-	// Get present working directory
-	pwd, err := os.Getwd()
-	if err != nil {
-		fmt.Printf("mmm: Permission denied.\n")
-		os.Exit(1)
-	}
-
-	// Download the file
-	err = download(pwd)
-	if err != nil {
-		fmt.Printf("mmm: Unable to download or write server jar file.\n")
-		os.Exit(1)
-	}
-
-	err = genEula(pwd)
-	if err != nil {
-		fmt.Printf("mmm: Could not write eula.txt.\n")
-		os.Exit(1)
-	}
-
-	runInstance(pwd)
+	setEnv()
 }
