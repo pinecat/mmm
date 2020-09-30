@@ -10,7 +10,7 @@ import (
 // Setup some default values, just in case the config
 //	file is missing
 var (
-	Mmmdir string = "/usr/local/etc/mmm"
+	Mmmdir string = os.Getenv("HOME") + "/.mmm"
 	Editor string = "vi"
 	Dbglvl string = "1"
 )
