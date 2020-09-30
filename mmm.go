@@ -25,10 +25,14 @@ func main() {
 
 	// Remove trailing slash from filepath if there
 	if (*ff)[len(*ff)-1] == '/' {
-		*ff = (*ff)[0 : len(*ff)-2]
+		*ff = (*ff)[0 : len(*ff)-1]
 	}
 
 	// Set some program settings (debug level, etc)
+	//	We get back a logfile if the debug level
+	//	is set to 3 or 4, and it is only a valid
+	//	file if rf, df, or sf are true (in other
+	// 	words, no logfile for the mmm client)
 	logfile, cfg := util.SetEnv(*ff, *rf, *df, *sf)
 
 	// Perform an action based on the flag
@@ -49,7 +53,7 @@ func main() {
 			// Remove the pidfile
 			err := os.Remove(*ff + util.Mmmpid)
 			if err != nil {
-				log.Trace().Msg("[MMM] Cannot delete pidfile: " + *ff + util.Mmmpid + ".  Please delete it manually.")
+				log.Trace().Msg("[MMM] Cannot open pidfile: " + *ff + util.Mmmpid + ".")
 				log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
 			}
 
@@ -68,10 +72,12 @@ func main() {
 			log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
 			os.Exit(1)
 		}
-		cmd := exec.Command(os.Args[0], "-r")
+
+		cmd := exec.Command(os.Args[0], "-f="+*ff, "-p="+*pf, "-r")
 		cmd.Start()
 		log.Info().Msg("[MMM] Started the mmm daemon [" + strconv.Itoa(cmd.Process.Pid) + "].")
 		util.SavePid(*ff, cmd.Process.Pid)
+
 		logfile.Close()
 		os.Exit(0)
 	} else if *sf {
