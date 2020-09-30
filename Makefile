@@ -1,21 +1,16 @@
 GO=go
-BUILDDIR=build
 INSTALLDIR=/usr/local/bin
-CONFIGDIR=/usr/local/etc/mmm
 
 all: mmm
 
 mmm:
-	mkdir -p $(BUILDDIR)
-	go build -o build/mmm ./mmm.go
+	go build mmm.go
 
 install:
-	cp $(BUILDDIR)/mmm $(INSTALLDIR)/mmm
-	mkdir -p $(CONFIGDIR)
+	cp mmm $(INSTALLDIR)/
 
 uninstall:
 	rm -f $(INSTALLDIR)/mmm
-	rm -rf $(CONFIGDIR)
 
 clean:
 	rm -rf $(BUILDDIR)

@@ -2,50 +2,81 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
-	"os/exec"
 	"os/signal"
-	"strconv"
-	"syscall"
+	"time"
 
 	"github.com/pinecat/mmm/serve"
 	"github.com/pinecat/mmm/util"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
+/*
+	keepAlive
+		Blocking function for go routine (daemonizing)
+	params:
+		ch - chan os.Signal - The channel where any
+			interrupts will come from
+	returns:
+		void
+*/
 func keepAlive(ch chan os.Signal) {
 	for {
 		sig := <-ch
 		signal.Stop(ch)
 		fmt.Println("Received " + sig.String() + " signal.  Quitting....")
-		os.Remove("./mmm.pid")
+		os.Remove(util.Mmmdir + "/mmm.pid")
 		os.Exit(0)
 	}
 }
 
+/* main: The main function */
 func main() {
-	rf, df, sf, _ := util.SetupFlags()
+	// Get cmdline flags/args
+	rf, df, sf, pf := util.SetupFlags()
 
+	// Unfortunately, have to do some setup for logging before reading config
+	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
+
+	// Read the config files, if it exists
+	//	If the config files does not exist
+	//	err will still be nil, we will
+	//	just use hardcoded default values
+	if err := util.ReadConfig(); err != nil {
+		log.Info().Msg("[mmm] " + err.Error())
+	}
+
+	// See if the mmmdir exists, if not, try to create it
+	if exists, _ := util.ExistsDir(util.Mmmdir); !exists {
+		if err := util.CreateDir(util.Mmmdir); err != nil {
+			log.Info().Msg("[mmm] " + err.Error() + ".  Quitting....")
+			os.Exit(1)
+		}
+	}
+
+	// Setup logging for real now
+	f := util.SetupLogging()
+	if f != nil && f != os.Stderr {
+		defer f.Close()
+	}
+
+	// Run the actual program
 	if *rf {
 		ch := util.SetupSignals()
 		go keepAlive(ch)
-		serve.Start()
+		serve.Start(pf)
 	}
 
+	// Daemonize
 	if *df {
-		cmd := exec.Command(os.Args[0], "-r")
-		cmd.Start()
-		os.Create("./mmm.pid")
-		if err := ioutil.WriteFile("./mmm.pid", []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
-			fmt.Printf("%v", err)
-		}
-		fmt.Printf("PID of the child process: %d.\n", cmd.Process.Pid)
+		util.Daemonize(os.Args[0], pf)
 		os.Exit(0)
 	}
 
+	// Stop daemon
 	if *sf {
-		pidstr, _ := ioutil.ReadFile("./mmm.pid")
-		pid, _ := strconv.Atoi(string(pidstr))
-		syscall.Kill(pid, syscall.SIGKILL)
+		util.StopDaemon()
+		os.Exit(0)
 	}
 }

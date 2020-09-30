@@ -1,0 +1,3 @@
+mmmdir=/usr/local/etc/mmm
+editor=vi
+dbglvl=1

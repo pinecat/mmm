@@ -6,8 +6,8 @@ import (
 	"net/textproto"
 )
 
-func Start() {
-	ln, err := net.Listen("tcp", ":25578")
+func Start(port string) {
+	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		fmt.Printf("%v", err)
 	}

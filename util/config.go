@@ -1,0 +1,60 @@
+package util
+
+import (
+	"bufio"
+	"os"
+	"strings"
+)
+
+/*
+	ReadConfig
+		Checks to see if $HOME/.mmmrc exists, and if it
+		does, attempts to read in configuration from it
+	params:
+		none
+	returns:
+		err - error - Indicates an error occurred when
+			attempting to open the file
+		nil - error - Indicates the file does not exist
+			or the config was read in successfully
+*/
+func ReadConfig() error {
+	// Check if the .mmmrc file exists
+	fp := os.Getenv("HOME") + "/.mmmrc"
+	if exists, _ := ExistsDir(fp); !exists {
+		return nil
+	}
+
+	// Open the file for reading
+	f, err := os.Open(fp)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	// Create a new bufio reader
+	reader := bufio.NewScanner(f)
+
+	// Read in values and parse
+	for reader.Scan() {
+		key := strings.Split(reader.Text(), "=")[0]
+		val := strings.Split(reader.Text(), "=")[1]
+
+		switch strings.ToLower(key) {
+		case "mmmdir":
+			if val[len(val)-1] == '/' {
+				val = val[0 : len(val)-1]
+			}
+			Mmmdir = val
+			break
+		case "editor":
+			Editor = val
+			break
+		case "dbglvl":
+			Dbglvl = val
+			break
+		}
+	}
+
+	return nil
+}
