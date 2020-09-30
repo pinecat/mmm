@@ -1,7 +1,8 @@
 package main
 
 import (
-	"flag"
+	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -10,84 +11,41 @@ import (
 
 	"github.com/pinecat/mmm/serve"
 	"github.com/pinecat/mmm/util"
-	"github.com/rs/zerolog/log"
 )
 
-func main() {
-	// Setup cmdline flags and parse
-	rf := flag.Bool("r", false, "Run mmm")
-	df := flag.Bool("d", false, "Daemonize")
-	sf := flag.Bool("s", false, "Stop daemon")
-	ff := flag.String("f", "/usr/local/etc/mmm", "Config/server dir")
-	pf := flag.String("p", "25564", "Port for the mmm daemon")
-	_ = flag.String("mp", "25565", "Minecraft server port")
-	flag.Parse()
+func keepAlive(ch chan os.Signal) {
+	for {
+		sig := <-ch
+		signal.Stop(ch)
+		fmt.Println("Received " + sig.String() + " signal.  Quitting....")
+		os.Remove("./mmm.pid")
+		os.Exit(0)
+	}
+}
 
-	// Remove trailing slash from filepath if there
-	if (*ff)[len(*ff)-1] == '/' {
-		*ff = (*ff)[0 : len(*ff)-1]
+func main() {
+	rf, df, sf, _ := util.SetupFlags()
+
+	if *rf {
+		ch := util.SetupSignals()
+		go keepAlive(ch)
+		serve.Start()
 	}
 
-	// Set some program settings (debug level, etc)
-	//	We get back a logfile if the debug level
-	//	is set to 3 or 4, and it is only a valid
-	//	file if rf, df, or sf are true (in other
-	// 	words, no logfile for the mmm client)
-	logfile, cfg := util.SetEnv(*ff, *rf, *df, *sf)
-
-	// Perform an action based on the flag
-	if *rf {
-		// Run the daemon program normally (i.e. in the foreground)
-		log.Info().Msg("[MMM] Log Level: " + strconv.Itoa(cfg.Debug) + ".")
-		log.Info().Msg("[MMM] Using config & server dir: " + *ff + ".")
-
-		// Setup signals
-		ch := make(chan os.Signal, 1)
-		signal.Notify(ch, os.Interrupt, os.Kill, syscall.SIGTERM)
-
-		go func() {
-			sig := <-ch
-			signal.Stop(ch)
-			log.Info().Msg("Received " + sig.String() + " signal.  Quitting....")
-
-			// Remove the pidfile
-			err := os.Remove(*ff + util.Mmmpid)
-			if err != nil {
-				log.Trace().Msg("[MMM] Cannot open pidfile: " + *ff + util.Mmmpid + ".")
-				log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
-			}
-
-			logfile.Close()
-			os.Exit(0)
-		}()
-
-		serve.Start(*pf)
-	} else if *df {
-		// Daemonize it (will call the program again but with the -r
-		//	flag to run in background)
-		log.Info().Msg("[MMM] Starting the mmm daemon.")
-		_, err := os.Stat(*ff + util.Mmmpid)
-		if err == nil {
-			log.Info().Msg("[MMM] The mmm daemon is already running.")
-			log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
-			os.Exit(1)
-		}
-
-		cmd := exec.Command(os.Args[0], "-f="+*ff, "-p="+*pf, "-r")
+	if *df {
+		cmd := exec.Command(os.Args[0], "-r")
 		cmd.Start()
-		log.Info().Msg("[MMM] Started the mmm daemon [" + strconv.Itoa(cmd.Process.Pid) + "].")
-		util.SavePid(*ff, cmd.Process.Pid)
-
-		logfile.Close()
+		os.Create("./mmm.pid")
+		if err := ioutil.WriteFile("./mmm.pid", []byte(strconv.Itoa(cmd.Process.Pid)), 0644); err != nil {
+			fmt.Printf("%v", err)
+		}
+		fmt.Printf("PID of the child process: %d.\n", cmd.Process.Pid)
 		os.Exit(0)
-	} else if *sf {
-		// Stop the daemon
-		util.ReadPid(*ff)
-		logfile.Close()
-		os.Exit(0)
-	} else {
-		// Issue commands to the daemon, after checking to see
-		//	if the daemon has been started
+	}
 
+	if *sf {
+		pidstr, _ := ioutil.ReadFile("./mmm.pid")
+		pid, _ := strconv.Atoi(string(pidstr))
+		syscall.Kill(pid, syscall.SIGKILL)
 	}
 }

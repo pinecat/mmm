@@ -1,42 +1,24 @@
 package serve
 
 import (
+	"fmt"
 	"net"
 	"net/textproto"
-
-	"github.com/rs/zerolog/log"
 )
 
-func await(conn textproto.Conn, ra net.Addr) {
-	defer conn.Close()
-	for {
-		data, err := conn.ReadLine()
-		if err != nil {
-			log.Info().Msg("[MMM] Client : " + ra.String() + " disconnected.")
-			conn.Close()
-			break
-		}
-		log.Info().Msg(data)
-	}
-}
-
-func Start(pf string) {
-	ln, err := net.Listen("tcp", ":"+pf)
+func Start() {
+	ln, err := net.Listen("tcp", ":25578")
 	if err != nil {
-		log.Info().Msg("[MMM] Unable to listen on port: " + pf + ".  Perhaps that port is already in use.  Quitting....")
-		log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
+		fmt.Printf("%v", err)
 	}
-
-	log.Info().Msg("[MMM] Successfully started listening on port: " + pf + ".")
-
 	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			log.Info().Msg("[MMM] A client tried to connect, but there was an error.")
-			log.Trace().Msg("[ERR] Trace: " + err.Error() + ".")
-		}
-		log.Info().Msg("[MMM] Connected to client: " + conn.RemoteAddr().String() + ".")
+		conn, _ := ln.Accept()
 		tpconn := textproto.NewConn(conn)
-		go await(*tpconn, conn.RemoteAddr())
+		go func() {
+			for {
+				data, _ := tpconn.ReadLine()
+				fmt.Printf("[%s] %s.\n", conn.RemoteAddr().String(), string(data))
+			}
+		}()
 	}
 }
