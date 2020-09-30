@@ -45,10 +45,10 @@ func ReadConfig() error {
 			if val[len(val)-1] == '/' {
 				val = val[0 : len(val)-1]
 			}
-			Mmmdir = val
+			Mmmdir = os.ExpandEnv(val)
 			break
 		case "editor":
-			Editor = val
+			Editor = os.ExpandEnv(val)
 			break
 		case "dbglvl":
 			Dbglvl = val
