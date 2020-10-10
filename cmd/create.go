@@ -57,8 +57,8 @@ var cmdCreateServer cmd = cmd{
 		}
 
 		if version == "latest" {
-			log.Trace().Msgf("[mmm] The latest version is: %s.", v)
-			fmt.Fprintf(conn, "[mmm] The latest version is: %s.\n", v)
+			log.Trace().Msgf("[mmm] The latest Minecraft version is: %s.", v)
+			fmt.Fprintf(conn, "[mmm] The latest Minecraft version is: %s.\n", v)
 		}
 
 		log.Trace().Msgf("[mmm] Sucessfully downloaded %s server jar.", v)
