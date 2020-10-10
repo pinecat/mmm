@@ -30,36 +30,27 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 			return
 		}
 
-		// Check for a command
-		var isValid bool = false
-		data = strings.TrimSuffix(string(data), "\n")
-		args := strings.Split(data, " ")
-		for _, cmd := range cmd.Registry {
-			if args[0] == cmd.Name {
-				isValid = true
-				cmd.Handler(cmd, conn, args)
-				break
-			} else if len(args) > 1 && args[0]+" "+args[1] == cmd.Name {
-				isValid = true
-				cmd.Handler(cmd, conn, args)
-				break
-			} else {
-				for _, a := range cmd.Aliases {
-					if args[0] == a {
-						isValid = true
-						cmd.Handler(cmd, conn, args)
-						break
-					}
-				}
-			}
-		}
-
 		// Special case for quit
 		if string(data) == "quit" || string(data) == "q" {
 			conn.Write([]byte("[mmm] Quit command detected.  Press ENTER to return to your shell."))
 			log.Trace().Msg("[mmm] Client disconnected.")
 			conn.Close()
 			return
+		}
+
+		// Check for a command
+		var isValid bool = false
+		data = strings.TrimSuffix(string(data), "\n")
+		split := strings.Split(data, " ")
+		isValid, initCmd := cmd.Trigger(split[0], cmd.Registry)
+
+		if !isValid {
+			isValid, initCmd = cmd.SubTrigger(split[0], cmd.Registry)
+		}
+
+		if isValid {
+			finCmd, args := cmd.GetDeepest(initCmd, split)
+			finCmd.Handler(finCmd, conn, args)
 		}
 
 		// Check if there was a valid command, if not send an error message

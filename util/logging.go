@@ -57,9 +57,11 @@ func SetupLogging() *os.File {
 	}
 	zerolog.SetGlobalLevel(lvl)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: fil, TimeFormat: time.RFC1123Z})
-	log.Info().Msg("")
-	log.Info().Msg("")
-	log.Info().Msg("==== [mmm] Log Started At: " + time.Now().Format("2006-01-02 15:04:05 Monday") + " ====")
+	if fil != os.Stderr {
+		log.Info().Msg("")
+		log.Info().Msg("")
+		log.Info().Msg("====[mmm] Log Started At: " + time.Now().Format("2006-01-02 15:04:05 Monday") + " [mmm]====")
+	}
 
 	return fil
 }
