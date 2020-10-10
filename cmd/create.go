@@ -1,7 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"net"
+
+	"github.com/pinecat/mmm/instance"
+	"github.com/rs/zerolog/log"
 )
 
 var cmdCreate cmd = cmd{
@@ -27,6 +31,32 @@ var cmdCreateServer cmd = cmd{
 	Example:     "cs 1.16.2",
 	SubCmds:     []cmd{},
 	Handler: func(c cmd, conn net.Conn, args []string) {
-		conn.Write([]byte("[mmm] Not implemented yet ¯\\_(ツ)_/¯.\n"))
+		//conn.Write([]byte("[mmm] Not implemented yet ¯\\_(ツ)_/¯.\n"))
+		version := "latest"
+		if len(args) > 0 {
+			version = args[0]
+		}
+
+		if version == "latest" {
+			fmt.Fprintf(conn, "[mmm] Tring to create server with the %s version.\n", version)
+		} else {
+			fmt.Fprintf(conn, "[mmm] Tring to create server with version %s.\n", version)
+		}
+
+		created, err := instance.Download(version)
+		if err != nil {
+			log.Info().Msgf("[mmm] %s.", err.Error())
+			fmt.Fprintf(conn, "[mmm] Unable to download server jar, using version: %s.  Check mmm logs for more details.\n", version)
+			return
+		}
+
+		if !created && err == nil {
+			log.Trace().Msgf("[mmm] Client request an invalid version: %s.", version)
+			fmt.Fprintf(conn, "[mmm] Version: %s, is invalid.  Please use a valid version.\n", version)
+			return
+		}
+
+		log.Trace().Msgf("[mmm] Sucessfully downloaded %s server jar.", version)
+		fmt.Fprintf(conn, "[mmm] Successfully downloaded %s server jar.\n", version)
 	},
 }
