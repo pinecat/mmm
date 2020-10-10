@@ -4,13 +4,14 @@ import (
 	"flag"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
 // Setup some default values, just in case the config
 //	file is missing
 var (
-	Mmmdir string = os.Getenv("HOME") + "/.mmm"
+	Mmmdir string = "/usr/local/srv/mmm"
 	Editor string = "vi"
 	Dbglvl string = "1"
 )
@@ -76,8 +77,18 @@ func ExistsDir(path string) (bool, error) {
 		nil - error - Indicates the directory was created
 */
 func CreateDir(path string) error {
-	err := os.Mkdir(path, 0744)
-	return err
+	dirs := strings.Split(path, "/")
+	var fpath string = ""
+	for _, d := range dirs {
+		fpath = fpath + "/" + d
+		if exists, _ := ExistsDir(fpath); !exists {
+			err := os.Mkdir(fpath, 0775)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 /*
