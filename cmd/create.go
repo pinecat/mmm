@@ -14,7 +14,7 @@ var cmdCreate cmd = cmd{
 	SubCmds:     []cmd{cmdCreateServer},
 	Handler: func(c cmd, conn net.Conn, args []string) {
 		// This command on its own does not actually do anything
-		conn.Write([]byte("[mmm] The create command must use a subcommand.\n"))
+		conn.Write([]byte("[mmm] The create command must be used with a subcommand.\n"))
 	},
 }
 

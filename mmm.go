@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/pinecat/mmm/cli"
 	"github.com/pinecat/mmm/serve"
 	"github.com/pinecat/mmm/util"
 	"github.com/rs/zerolog"
@@ -66,5 +67,7 @@ func main() {
 		ch := util.SetupSignals()
 		go keepAlive(ch)
 		serve.Start(pf)
+	} else {
+		cli.Start(pf)
 	}
 }

@@ -13,6 +13,6 @@ var cmdHelp cmd = cmd{
 	Example:     "help",
 	SubCmds:     []cmd{},
 	Handler: func(c cmd, conn net.Conn, args []string) {
-		conn.Write([]byte("Help menu coming soon.\n"))
+		conn.Write([]byte("[mmm] Help menu coming soon.\n"))
 	},
 }

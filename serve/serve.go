@@ -17,7 +17,7 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 	conn.Write([]byte("[mmm] Use the 'quit' ('q') command or CTRL-C to close the program.\n"))
 	for {
 		// Send a PS to the client
-		conn.Write([]byte("[mmm]λ "))
+		conn.Write([]byte("[mmm]λ \n"))
 
 		// Read in from the connection per line
 		data, err := tpconn.ReadLine()
