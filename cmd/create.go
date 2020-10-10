@@ -43,7 +43,7 @@ var cmdCreateServer cmd = cmd{
 			fmt.Fprintf(conn, "[mmm] Tring to create server with version %s.\n", version)
 		}
 
-		created, err := instance.Download(version)
+		created, v, err := instance.Download(version)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
 			fmt.Fprintf(conn, "[mmm] Unable to download server jar, using version: %s.  Check mmm logs for more details.\n", version)
@@ -56,7 +56,12 @@ var cmdCreateServer cmd = cmd{
 			return
 		}
 
-		log.Trace().Msgf("[mmm] Sucessfully downloaded %s server jar.", version)
-		fmt.Fprintf(conn, "[mmm] Successfully downloaded %s server jar.\n", version)
+		if version == "latest" {
+			log.Trace().Msgf("[mmm] The latest version is: %s.", v)
+			fmt.Fprintf(conn, "[mmm] The latest version is: %s.\n", v)
+		}
+
+		log.Trace().Msgf("[mmm] Sucessfully downloaded %s server jar.", v)
+		fmt.Fprintf(conn, "[mmm] Successfully downloaded %s server jar.\n", v)
 	},
 }

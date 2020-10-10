@@ -33,11 +33,11 @@ func Init() {
 
 }
 
-func Download(version string) (bool, error) {
+func Download(version string) (bool, string, error) {
 	// Get the manifest, we will need this no matter what
 	data, err := RetrieveFile(MANIFEST)
 	if err != nil {
-		return false, err
+		return false, version, err
 	}
 	md, _ := GetManifestJSON(data)
 
@@ -51,22 +51,22 @@ func Download(version string) (bool, error) {
 		if version == v.ID {
 			data, err := RetrieveFile(v.URL)
 			if err != nil {
-				return false, err
+				return false, version, err
 			}
 			v, _ := GetVersionJSON(data)
 
 			// Now download the actual server
 			data, err = RetrieveFile(v.Downloads.Server.URL)
 			if err != nil {
-				return false, err
+				return false, version, err
 			}
 			WriteServerJar(data, version)
-			return true, nil
+			return true, version, nil
 		}
 	}
 
 	// If we loop through and can't find the version, return false, but nil
-	return false, nil
+	return false, version, nil
 }
 
 func RetrieveFile(url string) ([]byte, error) {
