@@ -46,13 +46,13 @@ var cmdCreateServer cmd = cmd{
 		created, v, err := instance.Download(version)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
-			fmt.Fprintf(conn, "[mmm] Unable to download server jar, using version: %s.  Check mmm logs for more details.\n", version)
+			fmt.Fprintf(conn, "[mmm] Unable to download server jar, with version: %s.  Check mmm logs for more details.\n", version)
 			return
 		}
 
 		if !created && err == nil {
-			log.Trace().Msgf("[mmm] Client request an invalid version: %s.", version)
-			fmt.Fprintf(conn, "[mmm] Version: %s, is invalid.  Please use a valid version.\n", version)
+			log.Trace().Msgf("[mmm] Client requested an invalid version: %s.", version)
+			fmt.Fprintf(conn, "[mmm] Version: %s, is invalid.  Please specifiy a valid Minecraft version.\n", version)
 			return
 		}
 
