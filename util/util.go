@@ -25,13 +25,11 @@ var (
 		df - *bool - Daemonize flag
 		sf - *bool - Stop daemon flag
 */
-func SetupFlags() (*bool, *bool, *bool, string) {
+func SetupFlags() (*bool, string) {
 	rf := flag.Bool("r", false, "Run")
-	df := flag.Bool("d", false, "Daemonize")
-	sf := flag.Bool("s", false, "Stop daemon")
 	pf := flag.String("p", "25564", "Daemon port")
 	flag.Parse()
-	return rf, df, sf, *pf
+	return rf, *pf
 }
 
 /*

@@ -34,7 +34,7 @@ func keepAlive(ch chan os.Signal) {
 /* main: The main function */
 func main() {
 	// Get cmdline flags/args
-	rf, df, sf, pf := util.SetupFlags()
+	rf, pf := util.SetupFlags()
 
 	// Unfortunately, have to do some setup for logging before reading config
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
@@ -66,17 +66,5 @@ func main() {
 		ch := util.SetupSignals()
 		go keepAlive(ch)
 		serve.Start(pf)
-	}
-
-	// Daemonize
-	if *df {
-		util.Daemonize(os.Args[0], pf)
-		os.Exit(0)
-	}
-
-	// Stop daemon
-	if *sf {
-		util.StopDaemon()
-		os.Exit(0)
 	}
 }
