@@ -1,6 +1,8 @@
 package cmd
 
-import "net"
+import (
+	"net"
+)
 
 var cmdCreate cmd = cmd{
 	Name:        "create",
@@ -11,12 +13,8 @@ var cmdCreate cmd = cmd{
 	Example:     "create server 1.16.2",
 	SubCmds:     []cmd{cmdCreateServer},
 	Handler: func(c cmd, conn net.Conn, args []string) {
-		if len(args) >= 2 {
-			if args[1] == "help" {
-				c.Help(conn)
-				return
-			}
-		}
+		// This command on its own does not actually do anything
+		conn.Write([]byte("[mmm] The create command must use a subcommand.\n"))
 	},
 }
 
@@ -29,11 +27,6 @@ var cmdCreateServer cmd = cmd{
 	Example:     "cs 1.16.2",
 	SubCmds:     []cmd{},
 	Handler: func(c cmd, conn net.Conn, args []string) {
-		if len(args) >= 2 {
-			if args[1] == "help" {
-				c.Help(conn)
-				return
-			}
-		}
+		conn.Write([]byte("[mmm] Not implemented yet ¯\\_(ツ)_/¯.\n"))
 	},
 }

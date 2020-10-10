@@ -38,6 +38,9 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 			return
 		}
 
+		// Print detailed info about client commands
+		log.Trace().Msg("[mmm] (" + conn.RemoteAddr().String() + ") " + string(data))
+
 		// Check for a command
 		var isValid bool = false
 		data = strings.TrimSuffix(string(data), "\n")
@@ -50,16 +53,23 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 
 		if isValid {
 			finCmd, args := cmd.GetDeepest(initCmd, split)
-			finCmd.Handler(finCmd, conn, args)
+			args = args[1:]
+			if len(args) >= 1 {
+				if args[0] == "help" {
+					finCmd.Help(conn)
+				} else {
+					finCmd.Handler(finCmd, conn, args)
+				}
+			} else {
+				finCmd.Handler(finCmd, conn, args)
+			}
 		}
 
 		// Check if there was a valid command, if not send an error message
 		if !isValid {
 			conn.Write([]byte("[mmm] Invalid command or syntax.\n"))
+			log.Trace().Msg("[mmm] Client sent invalid command or syntax.")
 		}
-
-		// Print detailed info about client commands
-		log.Trace().Msg("[mmm] (" + conn.RemoteAddr().String() + ") " + string(data))
 	}
 }
 
