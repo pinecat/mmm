@@ -11,7 +11,7 @@ import (
 func Start(port string) {
 	conn, err := net.Dial("tcp", "localhost:"+port)
 	if err != nil {
-		fmt.Printf("mmm: Error connecting to daemon: %s", err.Error())
+		fmt.Printf("mmm: Error connecting to daemon: %s\n", err.Error())
 		os.Exit(1)
 	}
 	defer conn.Close()
