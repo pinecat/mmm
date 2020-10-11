@@ -55,6 +55,8 @@ func ReadConfig() error {
 		case "dbglvl":
 			Dbglvl = val
 			break
+		case "aceula":
+			Aceula = val
 		}
 	}
 

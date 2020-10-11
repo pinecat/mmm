@@ -14,6 +14,7 @@ var (
 	Mmmdir string = "/usr/local/srv/mmm"
 	Editor string = "vi"
 	Dbglvl string = "1"
+	Aceula string = "0"
 )
 
 /*

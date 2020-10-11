@@ -95,3 +95,55 @@ type Version struct {
 	Time                   time.Time `json:"time"`
 	Type                   string    `json:"type"`
 }
+
+type Properties struct {
+	SpawProtection                 string
+	MaxTickTime                    string
+	QueryPort                      string
+	GeneratorSettings              string
+	SyncChunkWrites                string
+	ForceGamemode                  string
+	AllowNether                    string
+	EnforceWhitelist               string
+	Gamemode                       string
+	BroadcastConsoleToOps          string
+	EnableQuery                    string
+	PlayerIdleTimeout              string
+	Difficulty                     string
+	BroadcastRconToOps             string
+	SpawnMonsters                  string
+	OpPermissionLevel              string
+	Pvp                            string
+	EntityBroadcastRangePercentage string
+	SnooperEnabled                 string
+	LevelType                      string
+	EnableStatus                   string
+	Hardcore                       string
+	EnableCommandBlock             string
+	NetworkCompressionThreshold    string
+	MaxPlayers                     string
+	MaxWorldSize                   string
+	ResourcePackSha1               string
+	FunctionPermissionLevel        string
+	RconPort                       string
+	ServerPort                     string
+	ServerIp                       string
+	SpawnNpcs                      string
+	AllowFlight                    string
+	LevelName                      string
+	ViewDistance                   string
+	ResourcePack                   string
+	SpawnAnimals                   string
+	WhileList                      string
+	RconPassword                   string
+	GenerateStructures             string
+	OnlineMode                     string
+	MaxBuildHeight                 string
+	LevelSeed                      string
+	PreventProxyConnections        string
+	UseNativeTransport             string
+	EnableJmxMonitoring            string
+	Motd                           string
+	RateLimit                      string
+	EnableRcon                     string
+}

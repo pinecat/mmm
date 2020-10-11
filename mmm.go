@@ -27,7 +27,6 @@ func keepAlive(ch chan os.Signal) {
 		sig := <-ch
 		signal.Stop(ch)
 		fmt.Println("Received " + sig.String() + " signal.  Quitting....")
-		os.Remove(util.Mmmdir + "/mmm.pid")
 		os.Exit(0)
 	}
 }

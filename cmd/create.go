@@ -31,7 +31,6 @@ var cmdCreateServer cmd = cmd{
 	Example:     "cs 1.16.2",
 	SubCmds:     []cmd{},
 	Handler: func(c cmd, conn net.Conn, args []string) {
-		//conn.Write([]byte("[mmm] Not implemented yet ¯\\_(ツ)_/¯.\n"))
 		version := "latest"
 		if len(args) > 0 {
 			version = args[0]
@@ -43,7 +42,19 @@ var cmdCreateServer cmd = cmd{
 			fmt.Fprintf(conn, "[mmm] Tring to create server with version %s.\n", version)
 		}
 
-		created, v, err := instance.Download(version)
+		name, port, err := instance.NewServer("", "")
+		if err != nil {
+			log.Info().Msgf("[mmm] %s.", err.Error())
+			fmt.Fprintf(conn, "[mmm] Error registering the server.")
+			return
+		}
+		if port == "0" {
+			log.Info().Msg("[mmm] Invalid port.")
+			fmt.Fprintf(conn, "[mmm] Invalid port.\n")
+			return
+		}
+
+		created, v, err := instance.Download(version, name)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
 			fmt.Fprintf(conn, "[mmm] Unable to download server jar, with version: %s.  Check mmm logs for more details.\n", version)
@@ -62,6 +73,8 @@ var cmdCreateServer cmd = cmd{
 		}
 
 		log.Trace().Msgf("[mmm] Sucessfully downloaded %s server jar.", v)
+		log.Trace().Msgf("[mmm] Created server: %s on port: %s.", name, port)
 		fmt.Fprintf(conn, "[mmm] Successfully downloaded %s server jar.\n", v)
+		fmt.Fprintf(conn, "[mmm] Created server: %s on port: %s.\n", name, port)
 	},
 }

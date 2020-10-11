@@ -27,6 +27,7 @@ func Register() {
 	Registry = append(Registry,
 		cmdHelp,
 		cmdCreate,
+		cmdRemove,
 		cmdJava,
 	)
 }
