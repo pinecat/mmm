@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pinecat/mmm/cmd"
+	"github.com/pinecat/mmm/instance"
 	"github.com/rs/zerolog/log"
 )
 
@@ -75,6 +76,7 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 
 func Start(port string) {
 	cmd.Register()
+	instance.GetServers()
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Info().Msg("[mmm] " + err.Error() + ".  Quitting....")

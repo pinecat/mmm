@@ -7,27 +7,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"time"
 
 	"github.com/pinecat/mmm/util"
 	"github.com/rs/zerolog/log"
 )
-
-type ManifestData struct {
-	Latest struct {
-		Release  string `json:"release"`
-		Snapshot string `json:"snapshot"`
-	} `json:"latest"`
-	Versions []struct {
-		ID          string    `json:"id"`
-		Type        string    `json:"type"`
-		URL         string    `json:"url"`
-		Time        time.Time `json:"time"`
-		ReleaseTime time.Time `json:"releaseTime"`
-	} `json:"versions"`
-}
-
-const MANIFEST string = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
 
 func Init() {
 
@@ -35,11 +18,11 @@ func Init() {
 
 func Download(version string) (bool, string, error) {
 	// Get the manifest, we will need this no matter what
-	data, err := RetrieveFile(MANIFEST)
+	manifestBytes, err := RetrieveFile(MANIFEST)
 	if err != nil {
 		return false, version, err
 	}
-	md, _ := GetManifestJSON(data)
+	md, _ := GetManifestJSON(manifestBytes)
 
 	// If the version passed is 'latest', use the latest version from the manifest file
 	if version == "latest" {
@@ -49,18 +32,23 @@ func Download(version string) (bool, string, error) {
 	// Search for the correct version
 	for _, v := range md.Versions {
 		if version == v.ID {
-			data, err := RetrieveFile(v.URL)
+			versionBytes, err := RetrieveFile(v.URL)
 			if err != nil {
 				return false, version, err
 			}
-			v, _ := GetVersionJSON(data)
+			gotVer, _ := GetVersionJSON(versionBytes)
 
 			// Now download the actual server
-			data, err = RetrieveFile(v.Downloads.Server.URL)
+			serverBytes, err := RetrieveFile(gotVer.Downloads.Server.URL)
 			if err != nil {
 				return false, version, err
 			}
-			WriteServerJar(data, version)
+
+			// Now write the jar to a file
+			WriteServerJar(serverBytes, version)
+
+			// TODO: Check jar against sha1 signature
+
 			return true, version, nil
 		}
 	}
@@ -70,7 +58,7 @@ func Download(version string) (bool, string, error) {
 }
 
 func RetrieveFile(url string) ([]byte, error) {
-	resp, err := http.Get(MANIFEST)
+	resp, err := http.Get(url)
 	if err != nil {
 		log.Info().Msgf("[mmm] Unable to retrieve the file at: %s.", url)
 		log.Info().Msg("[mmm] " + err.Error() + ".")
@@ -124,4 +112,8 @@ func WriteServerJar(data []byte, version string) (int64, error) {
 	}
 
 	return n, nil
+}
+
+func GenEula(sdir string) {
+
 }
