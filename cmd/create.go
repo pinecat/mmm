@@ -27,7 +27,7 @@ var cmdCreateServer cmd = cmd{
 	Aliases:     []string{"s"},
 	Description: "Create and deploy a Minecraft server instance.",
 	Type:        "SubCommand",
-	Usage:       "create server [version]",
+	Usage:       "create server [version] [port] [name]",
 	Example:     "cs 1.16.2",
 	SubCmds:     []cmd{},
 	Handler: func(conn net.Conn, args []string) {
@@ -35,6 +35,18 @@ var cmdCreateServer cmd = cmd{
 		version := "latest"
 		if len(args) > 0 {
 			version = args[0]
+		}
+
+		// Set default for port
+		port := ""
+		if len(args) > 1 {
+			port = args[1]
+		}
+
+		// Set default for name
+		name := ""
+		if len(args) > 2 {
+			name = args[2]
 		}
 
 		// Output based on version
@@ -45,7 +57,7 @@ var cmdCreateServer cmd = cmd{
 		}
 
 		// Register the instance
-		name, port, err := instance.NewServer("", "")
+		name, port, err := instance.NewServer(name, port)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
 			fmt.Fprintf(conn, "[mmm] Error registering the server.")
