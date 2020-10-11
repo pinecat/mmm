@@ -12,7 +12,7 @@ var cmdRemove cmd = cmd{
 	Usage:       "remove ...",
 	Example:     "create server srv0",
 	SubCmds:     []cmd{cmdRemoveServer},
-	Handler: func(c cmd, conn net.Conn, args []string) {
+	Handler: func(conn net.Conn, args []string) {
 		// This command on its own does not actually do anything
 		conn.Write([]byte("[mmm] The remove command must be used with a subcommand.\n"))
 	},
@@ -26,7 +26,7 @@ var cmdRemoveServer cmd = cmd{
 	Usage:       "remove server [version]",
 	Example:     "rs srv0",
 	SubCmds:     []cmd{},
-	Handler: func(c cmd, conn net.Conn, args []string) {
+	Handler: func(conn net.Conn, args []string) {
 		conn.Write([]byte("[mmm] Not implemented yet ¯\\_(ツ)_/¯.\n"))
 	},
 }

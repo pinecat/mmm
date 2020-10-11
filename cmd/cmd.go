@@ -19,7 +19,7 @@ type cmd struct {
 	Handler     Action
 }
 
-type Action func(cmd, net.Conn, []string)
+type Action func(net.Conn, []string)
 
 var Registry []cmd
 
@@ -28,6 +28,9 @@ func Register() {
 		cmdHelp,
 		cmdCreate,
 		cmdRemove,
+		cmdStart,
+		cmdStop,
+		cmdList,
 		cmdJava,
 	)
 }

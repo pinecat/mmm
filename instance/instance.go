@@ -17,7 +17,12 @@ import (
 
 func Init() {
 	Instances = make(map[string]string)
+	Running = make([]*ServerInstance, 0)
 	GetServers()
+
+	for name, port := range Instances {
+		RegisterServerInstance(name, port)
+	}
 }
 
 func Download(version string, subpath string) (bool, string, error) {
@@ -100,7 +105,7 @@ func GetVersionJSON(data []byte) (Version, error) {
 }
 
 func WriteServerJar(data []byte, version string, subpath string) (int64, error) {
-	out, err := os.Create(util.Mmmdir + "/" + subpath + "/server" + version + ".jar")
+	out, err := os.Create(util.Mmmdir + "/" + subpath + "/server.jar")
 	if err != nil {
 		log.Info().Msgf("[mmm] %s.", err.Error())
 		return 0, err

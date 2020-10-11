@@ -1,8 +1,11 @@
 package util
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"os"
+	"os/exec"
 	"os/signal"
 	"strings"
 	"syscall"
@@ -108,4 +111,30 @@ func CreateFile(path string) error {
 	}
 	f.Close()
 	return nil
+}
+
+func CmdExists(cmd string) (string, bool) {
+	path, err := exec.LookPath(cmd)
+	return path, err == nil
+}
+
+func JavaVersion() string {
+	path, exists := CmdExists("java")
+	if !exists {
+		return "[mmm] Java executable not found.\n"
+	}
+
+	var buf bytes.Buffer
+	writer := bufio.NewWriter(&buf)
+
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   []string{path, "-version"},
+		Stdout: writer,
+		Stderr: writer,
+	}
+
+	cmd.Run()
+
+	return strings.TrimSuffix(buf.String(), "\n")
 }

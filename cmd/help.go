@@ -12,7 +12,7 @@ var cmdHelp cmd = cmd{
 	Usage:       "help",
 	Example:     "help",
 	SubCmds:     []cmd{},
-	Handler: func(c cmd, conn net.Conn, args []string) {
+	Handler: func(conn net.Conn, args []string) {
 		conn.Write([]byte("[mmm] Help menu coming soon.\n"))
 	},
 }

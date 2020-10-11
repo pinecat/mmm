@@ -16,7 +16,7 @@ var cmdCreate cmd = cmd{
 	Usage:       "create ...",
 	Example:     "create server 1.16.2",
 	SubCmds:     []cmd{cmdCreateServer},
-	Handler: func(c cmd, conn net.Conn, args []string) {
+	Handler: func(conn net.Conn, args []string) {
 		// This command on its own does not actually do anything
 		conn.Write([]byte("[mmm] The create command must be used with a subcommand.\n"))
 	},
@@ -30,18 +30,21 @@ var cmdCreateServer cmd = cmd{
 	Usage:       "create server [version]",
 	Example:     "cs 1.16.2",
 	SubCmds:     []cmd{},
-	Handler: func(c cmd, conn net.Conn, args []string) {
+	Handler: func(conn net.Conn, args []string) {
+		// Set default for version
 		version := "latest"
 		if len(args) > 0 {
 			version = args[0]
 		}
 
+		// Output based on version
 		if version == "latest" {
 			fmt.Fprintf(conn, "[mmm] Tring to create server with the %s version.\n", version)
 		} else {
 			fmt.Fprintf(conn, "[mmm] Tring to create server with version %s.\n", version)
 		}
 
+		// Register the instance
 		name, port, err := instance.NewServer("", "")
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
@@ -54,6 +57,7 @@ var cmdCreateServer cmd = cmd{
 			return
 		}
 
+		// Actually create the instance now
 		created, v, err := instance.Download(version, name)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
@@ -76,5 +80,10 @@ var cmdCreateServer cmd = cmd{
 		log.Trace().Msgf("[mmm] Created server: %s on port: %s.", name, port)
 		fmt.Fprintf(conn, "[mmm] Successfully downloaded %s server jar.\n", v)
 		fmt.Fprintf(conn, "[mmm] Created server: %s on port: %s.\n", name, port)
+
+		// Start the server
+		instance.RegisterServerInstance(name, port)
+		log.Trace().Msgf("[mmm] Started server: %s.", name)
+		fmt.Fprintf(conn, "[mmm] Started server: %s.\n", name)
 	},
 }

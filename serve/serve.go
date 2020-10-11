@@ -59,10 +59,10 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 				if args[0] == "help" {
 					finCmd.Help(conn)
 				} else {
-					finCmd.Handler(finCmd, conn, args)
+					finCmd.Handler(conn, args)
 				}
 			} else {
-				finCmd.Handler(finCmd, conn, args)
+				finCmd.Handler(conn, args)
 			}
 		}
 
