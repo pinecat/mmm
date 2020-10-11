@@ -36,12 +36,12 @@ func SetupFlags() (*bool, string, string, *bool, string, string, *bool, *bool, *
 	pf := flag.String("p", "25564", "Daemon port")
 
 	// Server name
-	nf := flag.String("name", "", "Server name (used with -c or -s flag)")
+	nf := flag.String("n", "", "Server name (used with -c or -s flag)")
 
 	// Flags for creating a server
 	cf := flag.Bool("c", false, "Create server (may utilize other flags)")
 	vf := flag.String("v", "latest", "Server version (only used with -c flag)")
-	spf := flag.String("port", "25565", "Server port (only used with -c flag)")
+	spf := flag.String("sp", "25565", "Server port (only used with -c flag)")
 
 	// Flags for starting and stopping a server
 	sf := flag.Bool("s", false, "Start server (requires the -name flag)")
