@@ -60,7 +60,7 @@ var cmdCreateServer cmd = cmd{
 		name, port, err := instance.NewServer(name, port)
 		if err != nil {
 			log.Info().Msgf("[mmm] %s.", err.Error())
-			fmt.Fprintf(conn, "[mmm] Error registering the server.")
+			fmt.Fprintf(conn, "[mmm] Error registering the server.\n")
 			return
 		}
 		if port == "0" {
@@ -97,5 +97,6 @@ var cmdCreateServer cmd = cmd{
 		instance.RegisterServerInstance(name, port)
 		log.Trace().Msgf("[mmm] Started server: %s.", name)
 		fmt.Fprintf(conn, "[mmm] Started server: %s.\n", name)
+		fmt.Fprintf(conn, "[mmm] Just for ni.\n")
 	},
 }

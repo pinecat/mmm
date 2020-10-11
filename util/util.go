@@ -30,7 +30,7 @@ var (
 		df - *bool - Daemonize flag
 		sf - *bool - Stop daemon flag
 */
-func SetupFlags() (*bool, string, string, *bool, string, string, *bool, *bool, *bool) {
+func SetupFlags() (*bool, string, string, *bool, string, string, *bool, *bool, *bool, *bool) {
 	// mmm specific flags
 	rf := flag.Bool("r", false, "Run")
 	pf := flag.String("p", "25564", "Daemon port")
@@ -48,11 +48,11 @@ func SetupFlags() (*bool, string, string, *bool, string, string, *bool, *bool, *
 	qf := flag.Bool("q", false, "Stop server (requires the -name flag)")
 
 	// Flags for listing and removing servers
-	//lf := flag.Bool("l", false, "List servers (requires -name flag)")
+	lf := flag.Bool("l", false, "List servers (requires -name flag)")
 	df := flag.Bool("d", false, "Remove server (requires -name flag)")
 
 	flag.Parse()
-	return rf, *pf, *nf, cf, *vf, *spf, sf, qf, df
+	return rf, *pf, *nf, cf, *vf, *spf, sf, qf, lf, df
 }
 
 /*

@@ -31,7 +31,7 @@ var cmdStop cmd = cmd{
 
 		for _, r := range instance.Running {
 			if r.Name == name {
-				r.Stop()
+				r.Stop("quit")
 				fmt.Fprintf(conn, "[mmm] Stopping server %s.\n", name)
 				return
 			}

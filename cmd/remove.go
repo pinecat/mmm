@@ -49,12 +49,10 @@ var cmdRemoveServer cmd = cmd{
 
 		for _, r := range instance.Running {
 			if r.Name == name {
-				r.Stop()
+				r.Stop("kill")
 				break
 			}
 		}
-
-		delete(instance.Instances, name)
 
 		err := os.RemoveAll(util.Mmmdir + "/" + name)
 		if err != nil {
@@ -62,6 +60,9 @@ var cmdRemoveServer cmd = cmd{
 			fmt.Fprintf(conn, "[mmm] Could not remove server instance: %s.\n", name)
 			return
 		}
+
+		delete(instance.Instances, name)
+
 		fmt.Fprintf(conn, "[mmm] Successfully removed server instance: %s.\n", name)
 	},
 }

@@ -75,8 +75,8 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 }
 
 func Start(port string) {
-	cmd.Register()
 	instance.Init()
+	cmd.Register()
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {
 		log.Info().Msg("[mmm] " + err.Error() + ".  Quitting....")

@@ -40,7 +40,9 @@ func Start(port string) {
 	for {
 		select {
 		case in := <-replies:
-			fmt.Printf("%s", in)
+			if in != "[mmm] Just for ni.\n" {
+				fmt.Printf("%s", in)
+			}
 			break
 		case out := <-inpcmds:
 			fmt.Fprintf(conn, "%s", out)

@@ -34,7 +34,7 @@ func keepAlive(ch chan os.Signal) {
 /* main: The main function */
 func main() {
 	// Get cmdline flags/args
-	rf, pf, nf, cf, vf, spf, sf, qf, df := util.SetupFlags()
+	rf, pf, nf, cf, vf, spf, sf, qf, lf, df := util.SetupFlags()
 
 	// Unfortunately, have to do some setup for logging before reading config
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
@@ -72,6 +72,8 @@ func main() {
 		cli.StartServ(pf, nf)
 	} else if *qf {
 		cli.Stop(pf, nf)
+	} else if *lf {
+		cli.List(pf)
 	} else if *df {
 		cli.Remove(pf, nf)
 	} else {

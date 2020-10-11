@@ -24,7 +24,7 @@ var cmdStart cmd = cmd{
 			return
 		}
 
-		if _, k := instance.Instances[name]; !k {
+		if _, ok := instance.Instances[name]; !ok {
 			fmt.Fprintf(conn, "[mmm] A server instance with the name: %s does not exist.\n", name)
 			return
 		}
@@ -39,6 +39,6 @@ var cmdStart cmd = cmd{
 		}
 
 		instance.RegisterServerInstance(name, port)
-		fmt.Fprintf(conn, "[mmm] Starting server %s.\n", name)
+		fmt.Fprintf(conn, "[mmm] Starting server %s....\n", name)
 	},
 }

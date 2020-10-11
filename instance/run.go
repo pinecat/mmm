@@ -58,7 +58,7 @@ func (s ServerInstance) Start() {
 
 		for {
 			sig := <-s.Sig
-			if sig == "quit" {
+			if sig == "quit" || sig == "kill" {
 				var i int
 				for i = 0; i < len(Running); i++ {
 					if Running[i].Name == s.Name {
@@ -70,7 +70,11 @@ func (s ServerInstance) Start() {
 				Running = Running[:len(Running)-1]
 				log.Trace().Msgf("[mmm] Running: %s.", Running)
 
-				cmd.Process.Signal(os.Interrupt)
+				if sig == "quit" {
+					cmd.Process.Signal(os.Interrupt)
+				} else if sig == "kill" {
+					cmd.Process.Kill()
+				}
 
 				return
 			}
@@ -78,6 +82,6 @@ func (s ServerInstance) Start() {
 	}()
 }
 
-func (s ServerInstance) Stop() {
-	s.Sig <- "quit"
+func (s ServerInstance) Stop(sig string) {
+	s.Sig <- sig
 }
