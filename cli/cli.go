@@ -6,14 +6,12 @@ import (
 	"net"
 	"os"
 	"strings"
-
-	"github.com/rs/zerolog/log"
 )
 
 func Start(port string) {
 	conn, err := net.Dial("tcp", "localhost:"+port)
 	if err != nil {
-		log.Info().Msgf("[mmm] %s.  Quitting....", err.Error())
+		fmt.Printf("mmm: Error connecting to daemon: %s", err.Error())
 		os.Exit(1)
 	}
 	defer conn.Close()
