@@ -57,6 +57,11 @@ func SetupLogging() *os.File {
 	}
 	zerolog.SetGlobalLevel(lvl)
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: fil, TimeFormat: time.RFC1123Z})
+	if fil != os.Stderr {
+		log.Info().Msg("")
+		log.Info().Msg("")
+		log.Info().Msg("====[mmm] Log Started At: " + time.Now().Format("2006-01-02 15:04:05 Monday") + " [mmm]====")
+	}
 
 	return fil
 }
@@ -74,7 +79,7 @@ func SetupLogging() *os.File {
 			WARNING: This will need to be closed eventually
 */
 func openLog() (*os.File, error) {
-	f, err := os.OpenFile(Mmmdir+"/mmm.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0744)
+	f, err := os.OpenFile(Mmmdir+"/mmm.log", os.O_APPEND|os.O_CREATE|os.O_RDWR, 0775)
 	if err != nil {
 		return nil, err
 	}

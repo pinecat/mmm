@@ -1,18 +1,23 @@
 package util
 
 import (
+	"bufio"
+	"bytes"
 	"flag"
 	"os"
+	"os/exec"
 	"os/signal"
+	"strings"
 	"syscall"
 )
 
 // Setup some default values, just in case the config
 //	file is missing
 var (
-	Mmmdir string = os.Getenv("HOME") + "/.mmm"
+	Mmmdir string = "/usr/local/srv/mmm"
 	Editor string = "vi"
 	Dbglvl string = "1"
+	Aceula string = "0"
 )
 
 /*
@@ -25,13 +30,29 @@ var (
 		df - *bool - Daemonize flag
 		sf - *bool - Stop daemon flag
 */
-func SetupFlags() (*bool, *bool, *bool, string) {
+func SetupFlags() (*bool, string, string, *bool, string, string, *bool, *bool, *bool, *bool) {
+	// mmm specific flags
 	rf := flag.Bool("r", false, "Run")
-	df := flag.Bool("d", false, "Daemonize")
-	sf := flag.Bool("s", false, "Stop daemon")
 	pf := flag.String("p", "25564", "Daemon port")
+
+	// Server name
+	nf := flag.String("n", "", "Server name (used with -c or -s flag)")
+
+	// Flags for creating a server
+	cf := flag.Bool("c", false, "Create server (may utilize other flags)")
+	vf := flag.String("v", "latest", "Server version (only used with -c flag)")
+	spf := flag.String("sp", "25565", "Server port (only used with -c flag)")
+
+	// Flags for starting and stopping a server
+	sf := flag.Bool("s", false, "Start server (requires the -name flag)")
+	qf := flag.Bool("q", false, "Stop server (requires the -name flag)")
+
+	// Flags for listing and removing servers
+	lf := flag.Bool("l", false, "List servers (requires -name flag)")
+	df := flag.Bool("d", false, "Remove server (requires -name flag)")
+
 	flag.Parse()
-	return rf, df, sf, *pf
+	return rf, *pf, *nf, cf, *vf, *spf, sf, qf, lf, df
 }
 
 /*
@@ -78,8 +99,18 @@ func ExistsDir(path string) (bool, error) {
 		nil - error - Indicates the directory was created
 */
 func CreateDir(path string) error {
-	err := os.Mkdir(path, 0744)
-	return err
+	dirs := strings.Split(path, "/")
+	var fpath string = ""
+	for _, d := range dirs {
+		fpath = fpath + "/" + d
+		if exists, _ := ExistsDir(fpath); !exists {
+			err := os.Mkdir(fpath, 0775)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 /*
@@ -98,4 +129,30 @@ func CreateFile(path string) error {
 	}
 	f.Close()
 	return nil
+}
+
+func CmdExists(cmd string) (string, bool) {
+	path, err := exec.LookPath(cmd)
+	return path, err == nil
+}
+
+func JavaVersion() string {
+	path, exists := CmdExists("java")
+	if !exists {
+		return "[mmm] Java executable not found.\n"
+	}
+
+	var buf bytes.Buffer
+	writer := bufio.NewWriter(&buf)
+
+	cmd := &exec.Cmd{
+		Path:   path,
+		Args:   []string{path, "-version"},
+		Stdout: writer,
+		Stderr: writer,
+	}
+
+	cmd.Run()
+
+	return strings.TrimSuffix(buf.String(), "\n")
 }

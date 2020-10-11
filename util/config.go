@@ -6,9 +6,11 @@ import (
 	"strings"
 )
 
+const CONFIGFILE string = "/usr/local/etc/mmm/mmm.conf"
+
 /*
 	ReadConfig
-		Checks to see if $HOME/.mmmrc exists, and if it
+		Checks to see if /usr/local/etc/mmm/mmm.conf exists, and if it
 		does, attempts to read in configuration from it
 	params:
 		none
@@ -20,7 +22,7 @@ import (
 */
 func ReadConfig() error {
 	// Check if the .mmmrc file exists
-	fp := os.Getenv("HOME") + "/.mmmrc"
+	fp := CONFIGFILE
 	if exists, _ := ExistsDir(fp); !exists {
 		return nil
 	}
@@ -53,6 +55,8 @@ func ReadConfig() error {
 		case "dbglvl":
 			Dbglvl = val
 			break
+		case "aceula":
+			Aceula = val
 		}
 	}
 

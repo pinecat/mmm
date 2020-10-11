@@ -4,12 +4,15 @@ import (
 	"net"
 )
 
-func helpHandler(c cmd, conn net.Conn, args []string) {
-	if len(args) >= 2 {
-		if args[1] == "help" {
-			c.Help(conn)
-			return
-		}
-	}
-	conn.Write([]byte("Help menu coming soon.\n"))
+var cmdHelp cmd = cmd{
+	Name:        "help",
+	Aliases:     []string{"h"},
+	Description: "Print a general help menu.",
+	Type:        "Command",
+	Usage:       "help",
+	Example:     "help",
+	SubCmds:     []cmd{},
+	Handler: func(conn net.Conn, args []string) {
+		conn.Write([]byte("[mmm] Help menu coming soon.\n"))
+	},
 }

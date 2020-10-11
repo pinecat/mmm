@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pinecat/mmm/cmd"
+	"github.com/pinecat/mmm/instance"
 	"github.com/rs/zerolog/log"
 )
 
@@ -17,7 +18,7 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 	conn.Write([]byte("[mmm] Use the 'quit' ('q') command or CTRL-C to close the program.\n"))
 	for {
 		// Send a PS to the client
-		conn.Write([]byte("[mmm]λ "))
+		conn.Write([]byte("[mmm]λ \n"))
 
 		// Read in from the connection per line
 		data, err := tpconn.ReadLine()
@@ -30,30 +31,6 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 			return
 		}
 
-		// Check for a command
-		var isValid bool = false
-		data = strings.TrimSuffix(string(data), "\n")
-		args := strings.Split(data, " ")
-		for _, cmd := range cmd.Registry {
-			if args[0] == cmd.Name {
-				isValid = true
-				cmd.Handler(cmd, conn, args)
-				break
-			} else if len(args) > 1 && args[0]+" "+args[1] == cmd.Name {
-				isValid = true
-				cmd.Handler(cmd, conn, args)
-				break
-			} else {
-				for _, a := range cmd.Aliases {
-					if args[0] == a {
-						isValid = true
-						cmd.Handler(cmd, conn, args)
-						break
-					}
-				}
-			}
-		}
-
 		// Special case for quit
 		if string(data) == "quit" || string(data) == "q" {
 			conn.Write([]byte("[mmm] Quit command detected.  Press ENTER to return to your shell."))
@@ -62,17 +39,43 @@ func await(conn net.Conn, tpconn *textproto.Conn) {
 			return
 		}
 
+		// Print detailed info about client commands
+		log.Trace().Msg("[mmm] (" + conn.RemoteAddr().String() + ") " + string(data))
+
+		// Check for a command
+		var isValid bool = false
+		data = strings.TrimSuffix(string(data), "\n")
+		split := strings.Split(data, " ")
+		isValid, initCmd := cmd.Trigger(split[0], cmd.Registry)
+
+		if !isValid {
+			isValid, initCmd = cmd.SubTrigger(split[0], cmd.Registry)
+		}
+
+		if isValid {
+			finCmd, args := cmd.GetDeepest(initCmd, split)
+			args = args[1:]
+			if len(args) >= 1 {
+				if args[0] == "help" {
+					finCmd.Help(conn)
+				} else {
+					finCmd.Handler(conn, args)
+				}
+			} else {
+				finCmd.Handler(conn, args)
+			}
+		}
+
 		// Check if there was a valid command, if not send an error message
 		if !isValid {
 			conn.Write([]byte("[mmm] Invalid command or syntax.\n"))
+			log.Trace().Msg("[mmm] Client sent invalid command or syntax.")
 		}
-
-		// Print detailed info about client commands
-		log.Trace().Msg("[mmm] (" + conn.RemoteAddr().String() + ") " + string(data))
 	}
 }
 
 func Start(port string) {
+	instance.Init()
 	cmd.Register()
 	ln, err := net.Listen("tcp", ":"+port)
 	if err != nil {

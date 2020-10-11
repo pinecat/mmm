@@ -6,6 +6,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/pinecat/mmm/cli"
 	"github.com/pinecat/mmm/serve"
 	"github.com/pinecat/mmm/util"
 	"github.com/rs/zerolog"
@@ -26,7 +27,6 @@ func keepAlive(ch chan os.Signal) {
 		sig := <-ch
 		signal.Stop(ch)
 		fmt.Println("Received " + sig.String() + " signal.  Quitting....")
-		os.Remove(util.Mmmdir + "/mmm.pid")
 		os.Exit(0)
 	}
 }
@@ -34,7 +34,7 @@ func keepAlive(ch chan os.Signal) {
 /* main: The main function */
 func main() {
 	// Get cmdline flags/args
-	rf, df, sf, pf := util.SetupFlags()
+	rf, pf, nf, cf, vf, spf, sf, qf, lf, df := util.SetupFlags()
 
 	// Unfortunately, have to do some setup for logging before reading config
 	log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr, TimeFormat: time.RFC1123Z})
@@ -66,17 +66,17 @@ func main() {
 		ch := util.SetupSignals()
 		go keepAlive(ch)
 		serve.Start(pf)
-	}
-
-	// Daemonize
-	if *df {
-		util.Daemonize(os.Args[0], pf)
-		os.Exit(0)
-	}
-
-	// Stop daemon
-	if *sf {
-		util.StopDaemon()
-		os.Exit(0)
+	} else if *cf {
+		cli.Create(pf, vf, spf, nf)
+	} else if *sf {
+		cli.StartServ(pf, nf)
+	} else if *qf {
+		cli.Stop(pf, nf)
+	} else if *lf {
+		cli.List(pf)
+	} else if *df {
+		cli.Remove(pf, nf)
+	} else {
+		cli.Start(pf)
 	}
 }
